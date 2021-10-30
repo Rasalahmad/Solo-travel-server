@@ -21,6 +21,7 @@ async function run() {
 
         const database = client.db("Tourism");
         const placeCollection = database.collection("Places");
+        const ordersCollection = client.db("Tourism").collection("orders");
 
         app.post('/addEvent', async (req, res) => {
             const place = req.body;
@@ -34,12 +35,45 @@ async function run() {
             res.send(places);
         })
 
-        app.delete('/services/:id', async(req, res) => {
+        app.post("/addOrders", (req, res) => {
+            ordersCollection.insertOne(req.body).then((result) => {
+                res.send(result);
+            });
+        });
+
+        app.get("/myOrders/:email", (req, res) => {
+            console.log(req.params);
+            ordersCollection
+                .find({ email: req.params.email })
+                .toArray((err, results) => {
+                    res.send(results);
+                });
+        });
+
+        app.get('/allBook', async (req, res) => {
+            const cursor = ordersCollection.find({});
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        app.delete('/deleteOrder/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId (id)}
-            const result = await placeCollection.deleteOne(query)
+            console.log(id)
+            const query = { _id: ObjectId(id) }
+            const result = await ordersCollection.deleteOne(query)
             res.json(result);
         })
+
+
+        // delete event
+
+        app.delete("/allBook/:id", async (req, res) => {
+            console.log(req.params.id);
+            const result = await ordersCollection.deleteOne({
+                _id: ObjectId(req.params.id),
+            });
+            res.send(result);
+        });
 
     }
     finally {
