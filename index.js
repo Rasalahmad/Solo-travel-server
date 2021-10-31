@@ -21,7 +21,8 @@ async function run() {
 
         const database = client.db("Tourism");
         const placeCollection = database.collection("Places");
-        const ordersCollection = client.db("Tourism").collection("orders");
+        const ordersCollection = client.db("Tourism").collection("Orders");
+        const popularCollection = client.db("Tourism").collection("popular");
 
         app.post('/addEvent', async (req, res) => {
             const place = req.body;
@@ -31,6 +32,12 @@ async function run() {
 
         app.get('/services', async (req, res) => {
             const cursor = placeCollection.find({});
+            const places = await cursor.toArray();
+            res.send(places);
+        })
+
+        app.get('/popular', async (req, res) => {
+            const cursor = popularCollection.find({});
             const places = await cursor.toArray();
             res.send(places);
         })
@@ -58,8 +65,8 @@ async function run() {
 
         app.delete('/deleteOrder/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id)
-            const query = { _id: ObjectId(id) }
+            // console.log(id)
+            const query = { _id: id }
             const result = await ordersCollection.deleteOne(query)
             res.json(result);
         })
@@ -68,12 +75,36 @@ async function run() {
         // delete event
 
         app.delete("/allBook/:id", async (req, res) => {
-            console.log(req.params.id);
+            // console.log(req.params.id);
             const result = await ordersCollection.deleteOne({
-                _id: ObjectId(req.params.id),
+                _id: req.params.id,
             });
             res.send(result);
         });
+
+        // update pending
+        app.put("/update/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: id }
+            console.log('qery', query)
+            const result = await ordersCollection.updateOne(query, {
+                $set: {
+                    status: 'Approved'
+                }
+            })
+            console.log(result);
+            // const filter = { _id: ObjectId(id) };
+        
+            // ordersCollection
+            //   .updateOne(filter, {
+            //     $set: {
+            //       status: updatedName.status,
+            //     },
+            //   })
+            //   .then((result) => {
+            //     res.send(result);
+            //   });
+          });
 
     }
     finally {
